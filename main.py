@@ -22,12 +22,10 @@ foldername = os.getcwd()
 wapi = WildbookAPI('http://pachy.cs.uic.edu:5001')
 all_gid_list = wapi.get_all_gids()
 
-print(wapi.get_image_size(all_gid_list))
-
 temp = {}
-"""
+
 for i in range(50):
-    wapi.download_image_resize(all_gid_list[i],foldername + "\images\\" + str(i) + ".jpg",4000)
+    #wapi.download_image_resize(all_gid_list[i],foldername + "\images\\" + str(i) + ".jpg",4000)
 
     gid = all_gid_list[i]
     data[gid] ={}
@@ -38,7 +36,7 @@ for i in range(50):
     data[gid]["species_list"] = get_species_list(aid_list)
 beauty_dict = {}
 
-"""
+
 
 file_sizes = []
 for i in range(50):
@@ -51,3 +49,4 @@ print(max(file_sizes))
 
 print(json.dumps(beauty_dict,sort_keys=True, indent=4))
 print(json.dumps(data,sort_keys=True, indent=4))
+
