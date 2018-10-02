@@ -36,7 +36,7 @@ def create_image_dir():
   ''' Check if there exists an 'images' directory, else create it. '''
   if 'images' not in os.listdir(current_dir):
     os.mkdir(current_dir + '/images/')
-  destination_dir = current_dir + '/images/'
+  destination_dir = os.path.join(current_dir, 'images') ## LS - updated to be OS independent
   return destination_dir
 
 def get_species_list(aid_list, api):                     # ?!
@@ -105,7 +105,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-
-
-
-
