@@ -12,6 +12,10 @@ import beautyFtr as beauty
 from pymongo import MongoClient as mongo
 from bson.binary import Binary
 
+## LS - added to more easily change server 
+DB_URL = 'mongodb://localhost:27017/'
+SERVER_URL = 'http://pachy.cs.uic.edu:5001'
+
 ''' Connect to the MongoDB found at given URL. '''
 def connect_db(url):
   client = mongo(url)
@@ -68,8 +72,8 @@ def store_image_samples(destination_dir, api):
   return gid_list
 
 def main():
-  client = connect_db('mongodb://localhost:27017/')     # connect mongodb.
-  api = create_api('http://pachy.cs.uic.edu:5001')      # get the api object for pachy.
+  client = connect_db(DB_URL)     # connect mongodb.
+  api = create_api(SERVER_URL)      # get the api object for pachy.
   destination_dir = create_image_dir()                  # create directory to store images.
   gid_list = store_image_samples(destination_dir, api)  # store retrieved images in destination directory.
   image_list = os.listdir(destination_dir)              # list of all images on the directory.
