@@ -15,7 +15,7 @@ from bson.binary import Binary
 ## LS - added to more easily change server
 DB_URL = 'mongodb://localhost:27017/'
 SERVER_URL = 'http://pachy.cs.uic.edu:5001'
-
+IMAGES_TO_ANALYSE = 1
 path_join = os.path.join
 ''' Connect to the MongoDB found at given URL. '''
 def connect_db(url):
@@ -64,10 +64,10 @@ def store_image_samples(destination_dir, api):
   ''' Shuffle the list of gid's to pick a random sample of 10 images. '''
   random.shuffle(gid_list)
 
-  print(gid_list[:4])
+  print(gid_list[:IMAGES_TO_ANALYSE])
 
   ''' Download the images from the Wildbook API. '''
-  for i in range(4):
+  for i in range(IMAGES_TO_ANALYSE):
     api.download_image_resize(gid_list[i], path_join(destination_dir, str(gid_list[i]) + '.jpg'), 4000)
     print(destination_dir + str(gid_list[i]) + '.jpg')
   return gid_list
