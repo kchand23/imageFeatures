@@ -8,6 +8,7 @@ from skimage import io, color, feature, transform
 import numpy as np, pandas as pd
 import time, json, argparse, math, os
 from datetime import datetime
+import time
 from sklearn.metrics.cluster import entropy
 
 final_ftr_obj_global = {}
@@ -21,7 +22,9 @@ def calc_contrast(r, g, b):
 
 def get_spat_arrng_ftrs(gray_img):
     # resize img to 600 * 600
-    resized_img = transform.resize(gray_img, (600, 600))
+
+    resized_img = transform.resize(gray_img, (600, 600), mode='constant', anti_aliasing=False)
+
     left = resized_img.transpose()[:300].transpose()
     right = resized_img.transpose()[300:].transpose()
 
@@ -92,6 +95,7 @@ def extr_beauty_ftrs(imgFlNm):
     contrast = calc_contrast(red, green, blue)
     ftrs = calc_color_ftrs(hue, saturation, value)
     ftrs['contrast'] = contrast
+    print('pre entropy')
     ftrs['entropy'] = entropy(
         grayImg)  # added to include entropy of the given image: more details: http://stackoverflow.com/a/42059758/5759063
     ftrs.update(get_spat_arrng_ftrs(grayImg))

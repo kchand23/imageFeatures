@@ -13,10 +13,11 @@ from pymongo import MongoClient as mongo
 from bson.binary import Binary
 
 ## LS - added to more easily change server
-DB_URL = 'mongodb://localhost:27017/'
-SERVER_URL = 'http://pachy.cs.uic.edu:5001'
-IMAGES_TO_ANALYSE = 1
-path_join = os.path.join
+DB_URL = 'mongodb://localhost:27017/' ## MongoDB
+SERVER_URL = 'http://pachy.cs.uic.edu:5001'  ## IBEIS Server (pachy or other)
+IMAGES_TO_ANALYZE = 1 ## How many images to analyze
+RANDOM_GIDS = False ## Should GIDs (images) be picked randomly?
+path_join = os.path.join # Shorthand function 
 ''' Connect to the MongoDB found at given URL. '''
 def connect_db(url):
   client = mongo(url)
@@ -62,12 +63,13 @@ def store_image_samples(destination_dir, api):
   print(gid_list[:10])
 
   ''' Shuffle the list of gid's to pick a random sample of 10 images. '''
-  random.shuffle(gid_list)
+  if RANDOM_GIDS:
+      random.shuffle(gid_list)
 
-  print(gid_list[:IMAGES_TO_ANALYSE])
+  print(gid_list[:IMAGES_TO_ANALYZE])
 
   ''' Download the images from the Wildbook API. '''
-  for i in range(IMAGES_TO_ANALYSE):
+  for i in range(IMAGES_TO_ANALYZE):
     api.download_image_resize(gid_list[i], path_join(destination_dir, str(gid_list[i]) + '.jpg'), 4000)
     print(destination_dir + str(gid_list[i]) + '.jpg')
   return gid_list
