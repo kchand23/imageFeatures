@@ -12,10 +12,11 @@ import beautyFtr as beauty
 from pymongo import MongoClient as mongo
 from bson.binary import Binary
 
-## LS - added to more easily change server 
+## LS - added to more easily change server
 DB_URL = 'mongodb://localhost:27017/'
 SERVER_URL = 'http://pachy.cs.uic.edu:5001'
 
+path_join = os.path.join
 ''' Connect to the MongoDB found at given URL. '''
 def connect_db(url):
   client = mongo(url)
@@ -67,7 +68,7 @@ def store_image_samples(destination_dir, api):
 
   ''' Download the images from the Wildbook API. '''
   for i in range(4):
-    api.download_image_resize(gid_list[i], destination_dir + str(gid_list[i]) + '.jpg', 4000)
+    api.download_image_resize(gid_list[i], os.path.join(destination_dir, str(gid_list[i]) + '.jpg'), 4000)
     print(destination_dir + str(gid_list[i]) + '.jpg')
   return gid_list
 
@@ -88,7 +89,7 @@ def main():
   ''' Iteratively store image properties to MongoDB. '''
   for image, gid in zip(image_list, gid_list):
     aid_list = api.get_aid_of_gid(gid)[0]
-    info = os.stat(destination_dir + image)
+    info = os.stat(os.path.join(destination_dir , image))
     size = info.st_size/(1024*1024.0)
     beauty_dict = beauty.extr_beauty_ftrs(destination_dir + image)
     Image = {
