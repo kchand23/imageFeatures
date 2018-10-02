@@ -11,6 +11,7 @@ from datetime import datetime
 import time
 from sklearn.metrics.cluster import entropy
 
+
 final_ftr_obj_global = {}
 
 
@@ -29,7 +30,7 @@ def get_spat_arrng_ftrs(gray_img):
     right = resized_img.transpose()[300:].transpose()
 
     I_anti = np.identity(600)[::-1]  # anti - diagonal identity matrix
-    inner = feature.hog(left) - feature.hog(I_anti.dot(right))
+    inner = feature.hog(left, block_norm='L1') - feature.hog(I_anti.dot(right) , block_norm='L1')
 
     return dict(symmetry=np.linalg.norm(inner))
 
@@ -65,7 +66,7 @@ def get_arr(imgObj):
 def resize_img(imgObj, base_width=600):
     if len(imgObj[0]) > 600:
         newHeight = int(len(imgObj) * base_width / len(imgObj[0]))
-        return transform.resize(imgObj, (newHeight, base_width))
+        return transform.resize(imgObj, (newHeight, base_width),  mode='constant', anti_aliasing=False)
     else:
         return imgObj
 
@@ -95,10 +96,10 @@ def extr_beauty_ftrs(imgFlNm):
     contrast = calc_contrast(red, green, blue)
     ftrs = calc_color_ftrs(hue, saturation, value)
     ftrs['contrast'] = contrast
-    print('pre entropy')
     ftrs['entropy'] = entropy(
         grayImg)  # added to include entropy of the given image: more details: http://stackoverflow.com/a/42059758/5759063
     ftrs.update(get_spat_arrng_ftrs(grayImg))
+
 
     final_ftr_obj_global[img] = ftrs
 
