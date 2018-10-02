@@ -41,7 +41,7 @@ def create_image_dir():
   ''' Check if there exists an 'images' directory, else create it. '''
   if 'images' not in os.listdir(current_dir):
     os.mkdir(current_dir + '/images/')
-  destination_dir = os.path.join(current_dir, 'images') ## LS - updated to be OS independent
+  destination_dir = path_join(current_dir, 'images') ## LS - updated to be OS independent
   return destination_dir
 
 def get_species_list(aid_list, api):                     # ?!
@@ -68,7 +68,7 @@ def store_image_samples(destination_dir, api):
 
   ''' Download the images from the Wildbook API. '''
   for i in range(4):
-    api.download_image_resize(gid_list[i], os.path.join(destination_dir, str(gid_list[i]) + '.jpg'), 4000)
+    api.download_image_resize(gid_list[i], path_join(destination_dir, str(gid_list[i]) + '.jpg'), 4000)
     print(destination_dir + str(gid_list[i]) + '.jpg')
   return gid_list
 
@@ -89,9 +89,9 @@ def main():
   ''' Iteratively store image properties to MongoDB. '''
   for image, gid in zip(image_list, gid_list):
     aid_list = api.get_aid_of_gid(gid)[0]
-    info = os.stat(os.path.join(destination_dir , image))
+    info = os.stat(path_join(destination_dir , image))
     size = info.st_size/(1024*1024.0)
-    beauty_dict = beauty.extr_beauty_ftrs(destination_dir + image)
+    beauty_dict = beauty.extr_beauty_ftrs(path_join(destination_dir, image))
     Image = {
       'gid': gid,
       'date': datetime.datetime.utcnow(),
