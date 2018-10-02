@@ -17,7 +17,8 @@ DB_URL = 'mongodb://localhost:27017/' ## MongoDB
 SERVER_URL = 'http://pachy.cs.uic.edu:5001'  ## IBEIS Server (pachy or other)
 IMAGES_TO_ANALYZE = 1 ## How many images to analyze
 RANDOM_GIDS = False ## Should GIDs (images) be picked randomly?
-path_join = os.path.join # Shorthand function 
+path_join = os.path.join # Shorthand function
+
 ''' Connect to the MongoDB found at given URL. '''
 def connect_db(url):
   client = mongo(url)
