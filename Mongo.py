@@ -91,7 +91,8 @@ def main():
   images = db[COLLECTION_NAME]
 
   ''' Iteratively store image properties to MongoDB. '''
-  for image, gid in zip(image_list, gid_list):
+  for image in image_list:
+    gid = str(image).replace('.jpg','')
     aid_list = api.get_aid_of_gid(gid)[0]
     info = os.stat(path_join(destination_dir , image))
     size = info.st_size/(1024*1024.0)
