@@ -10,14 +10,14 @@ import beautyFtr as beauty
 
 ''' Make sure you have PyMongo installed via pip. '''
 from pymongo import MongoClient as mongo
-from bson.binary import Binary
 
-## LS - added to more easily change server
-DB_URL = 'mongodb://localhost:27017/' ## MongoDB
-SERVER_URL = 'http://pachy.cs.uic.edu:5001'  ## IBEIS Server (pachy or other)
-IMAGES_TO_ANALYZE = 1 ## How many images to analyze
-RANDOM_GIDS = False ## Should GIDs (images) be picked randomly?
-path_join = os.path.join # Shorthand function
+DB_URL = 'mongodb://localhost:27017/'                               ## MongoDB
+SERVER_URL = 'http://pachy.cs.uic.edu:5001'                         ## IBEIS Server (pachy or other)
+IMAGES_TO_ANALYZE = 1                                               ## How many images to analyze
+RANDOM_GIDS = False                                                 ## Should GIDs (images) be picked randomly?
+DB_NAME = 'image-db'                                                ## Name of database in MongoDB.
+COLLECTION_NAME = 'images'                                          ## Name of collection in MongoDB.
+path_join = os.path.join                                            ## Shorthand function
 
 ''' Connect to the MongoDB found at given URL. '''
 def connect_db(url):
@@ -43,10 +43,11 @@ def create_image_dir():
   ''' Check if there exists an 'images' directory, else create it. '''
   if 'images' not in os.listdir(current_dir):
     os.mkdir(current_dir + '/images/')
-  destination_dir = path_join(current_dir, 'images') ## LS - updated to be OS independent
+  destination_dir = path_join(current_dir, 'images')                ## LS - updated to be OS independent
   return destination_dir
 
-def get_species_list(aid_list, api):                     # ?!
+''' Get list of species from a list of aids '''
+def get_species_list(aid_list, api):
   speciesDict = {}
   speciesList = api.get_species_of_aid(aid_list)
   for i in speciesList:
@@ -76,18 +77,18 @@ def store_image_samples(destination_dir, api):
   return gid_list
 
 def main():
-  client = connect_db(DB_URL)     # connect mongodb.
-  api = create_api(SERVER_URL)      # get the api object for pachy.
+  client = connect_db(DB_URL)                           # connect mongodb.
+  api = create_api(SERVER_URL)                          # get the api object for pachy.
   destination_dir = create_image_dir()                  # create directory to store images.
   gid_list = store_image_samples(destination_dir, api)  # store retrieved images in destination directory.
   image_list = os.listdir(destination_dir)              # list of all images on the directory.
   print(image_list)
 
   ''' Define a database.   '''
-  db = client['image-db']
+  db = client[DB_NAME]
 
   ''' Define a collection. '''
-  images = db['images']
+  images = db[COLLECTION_NAME]
 
   ''' Iteratively store image properties to MongoDB. '''
   for image, gid in zip(image_list, gid_list):
