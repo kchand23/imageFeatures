@@ -100,7 +100,7 @@ def main():
     Image = {
       'gid': gid,
       'date': datetime.datetime.utcnow(),
-      'image': (destination_dir + image),
+      'image': path_join(destination_dir, image),
       'aid_list': aid_list,
       'animal_count': len(aid_list),
       'nid_list': api.get_nid_of_aid(aid_list),
