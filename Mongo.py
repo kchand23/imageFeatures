@@ -12,10 +12,10 @@ import beautyFtr as beauty
 from pymongo import MongoClient as mongo
 
 DB_URL = 'mongodb://localhost:27017/'                               ## MongoDB
-SERVER_URL = 'http://104.42.42.134:5010'                         ## IBEIS Server (pachy or other)
+SERVER_URL = 'http://pachy.cs.uic.edu:5001'                         ## IBEIS Server (pachy or other)
 IMAGES_TO_ANALYZE = 100                                             ## How many images to analyze
 RANDOM_GIDS = False                                                 ## Should GIDs (images) be picked randomly?
-DB_NAME = 'test1-10032018'                                                ## Name of database in MongoDB.
+DB_NAME = 'test-new'                                                ## Name of database in MongoDB.
 COLLECTION_NAME = 'images'                                          ## Name of collection in MongoDB.
 path_join = os.path.join                                            ## Shorthand function
 
@@ -71,7 +71,7 @@ def store_image_samples(destination_dir, api):
   print(gid_list[:IMAGES_TO_ANALYZE])
 
   ''' Download the images from the Wildbook API. '''
-  for i in range(len(gid_list)):
+  for i in range(min(IMAGES_TO_ANALYZE, len(gid_list))):
     api.download_image_resize(gid_list[i], path_join(destination_dir, str(gid_list[i]) + '.jpg'), 4000)
     print(destination_dir + str(gid_list[i]) + '.jpg')
   return gid_list
