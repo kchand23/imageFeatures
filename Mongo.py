@@ -60,20 +60,36 @@ def get_species_list(aid_list, api):
 ''' Store a random sample of images retrieved from Wildbook API '''
 def store_image_samples(destination_dir, api):
   gid_list = api.get_all_gids()
-  print(type(gid_list))
+  # print(type(gid_list))
 
-  print(gid_list[:10])
+  # print(gid_list[:10])
 
   ''' Shuffle the list of gid's to pick a random sample of 10 images. '''
   if RANDOM_GIDS:
       random.shuffle(gid_list)
 
-  print(gid_list[:IMAGES_TO_ANALYZE])
+  # print(gid_list[:IMAGES_TO_ANALYZE])
 
   ''' Download the images from the Wildbook API. '''
-  for i in range(min(IMAGES_TO_ANALYZE, len(gid_list))):
-    api.download_image_resize(gid_list[i], path_join(destination_dir, str(gid_list[i]) + '.jpg'), 4000)
-    print(destination_dir + str(gid_list[i]) + '.jpg')
+  imageList = os.listdir(destination_dir)
+  image_names_list = []                                  # to see what images are already downloaded.
+  for name in imageList:
+    if name == '.DS_Store':                              # ignore metafiles on MacOS.
+      continue                                           # convert text to int and drop off the extension.
+    file_name = int(name[:-4])
+    image_names_list.append(file_name)                    # create a list of images that already exist.
+  # print(image_names_list)
+  # print(imageList)
+  number_images_to_analyze = min(IMAGES_TO_ANALYZE, len(gid_list))
+  for image in range(number_images_to_analyze + 1):
+    # print(i)
+    if gid_list[image] in image_names_list:
+      print(gid_list[image], 'I EXIST')                  # skip the images that exists already on disk.
+      continue
+    print(gid_list[image], 'I AM BEING DOWNLOADED')
+    api.download_image_resize(gid_list[image], path_join(destination_dir, str(gid_list[image]) + '.jpg'), 4000)
+    print('I have downloaded: ' + str(gid_list[image]))
+    # print(destination_dir + str(gid_list[i]) + '.jpg')
   return gid_list
 
 def main():
