@@ -2,12 +2,18 @@
   Author: Pratik Kshirsagar
   Date  : September 29 2018
 '''
-
-from wildbook import WildbookAPI
+try:
+    import wildbook
+except ImportError:
+    from imageFeatures import wildbook
 import os
 import datetime
-import beautyFtr as beauty
+try:
+    import beautyFtr as beauty
+except ImportError:
+    from imageFeatures import beautyFtr as beauty
 
+WildbookAPI = wildbook.WildbookAPI
 ''' Make sure you have PyMongo installed via pip. '''
 from pymongo import MongoClient as mongo
 
@@ -58,8 +64,10 @@ def get_species_list(aid_list, api):
   return speciesDict
 
 ''' Store a random sample of images retrieved from Wildbook API '''
-def store_image_samples(destination_dir, api):
-  gid_list = api.get_all_gids()
+def store_image_samples(destination_dir, api, gid_list_in=None):
+  gid_list=gid_list_in
+  if gid_list is None:
+    gid_list = api.get_all_gids()
   # print(type(gid_list))
 
   # print(gid_list[:10])
@@ -93,7 +101,7 @@ def store_image_samples(destination_dir, api):
   return gid_list
 
 
-def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, ):
+def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, custom_gids_list=None):
 
   global DB_URL
   global SERVER_URL
@@ -108,10 +116,12 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   IMAGES_TO_ANALYZE = imgs_to_analyze
   RANDOM_GIDS = rand_gids
 
+  if custom_gids_list is not None:
+    IMAGES_TO_ANALYZE=len(custom_gids_list)
   client = connect_db(DB_URL)                           # connect mongodb.
   api = create_api(SERVER_URL)                          # get the api object for pachy.
   destination_dir = create_image_dir()                  # create directory to store images.
-  gid_list = store_image_samples(destination_dir, api)  # store retrieved images in destination directory.
+  gid_list = store_image_samples(destination_dir, api, custom_gids_list)  # store retrieved images in destination directory.
   image_list = os.listdir(destination_dir)              # list of all images on the directory.
   print(image_list)
 
