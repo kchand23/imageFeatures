@@ -92,7 +92,22 @@ def store_image_samples(destination_dir, api):
     # print(destination_dir + str(gid_list[i]) + '.jpg')
   return gid_list
 
-def main():
+
+def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, ):
+
+  global DB_URL
+  global SERVER_URL
+  global DB_NAME
+  global COLLECTION_NAME
+  global IMAGES_TO_ANALYZE
+  global RANDOM_GIDS
+  DB_URL = db_url
+  SERVER_URL = server_url
+  DB_NAME = db_name
+  COLLECTION_NAME = collection_name
+  IMAGES_TO_ANALYZE = imgs_to_analyze
+  RANDOM_GIDS = rand_gids
+
   client = connect_db(DB_URL)                           # connect mongodb.
   api = create_api(SERVER_URL)                          # get the api object for pachy.
   destination_dir = create_image_dir()                  # create directory to store images.
