@@ -74,7 +74,7 @@ def resize_img(imgObj, base_width=600):
 def extr_beauty_ftrs(imgFlNm):
     img = os.path.basename(imgFlNm)
 
-    print("Extracting beauty features for %s" % img)
+    # print("Extracting beauty features for %s" % img)
 
     try:
          rgbImg = resize_img(io.imread(imgFlNm))
