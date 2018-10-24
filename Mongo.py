@@ -89,11 +89,16 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
   # print(image_names_list)
   # print(imageList)
   number_images_to_analyze = min(IMAGES_TO_ANALYZE, len(gid_list))
+  # print("Will analyze", number_images_to_analyze, " images")
   for image in range(number_images_to_analyze + 1):
-    # print(i)
-    if gid_list[image] in image_names_list:
-      print(gid_list[image], 'I EXIST')                  # skip the images that exists already on disk.
-      continue
+    print(image)
+    try:
+        if gid_list[image] in image_names_list:
+          print(gid_list[image], 'I EXIST')                  # skip the images that exists already on disk.
+          continue
+    except IndexError:
+        print("List index ", image, " does not exist")
+        continue
     print(gid_list[image], 'I AM BEING DOWNLOADED')
     api.download_image_resize(gid_list[image], path_join(destination_dir, str(gid_list[image]) + '.jpg'), 4000)
     print('I have downloaded: ' + str(gid_list[image]))
