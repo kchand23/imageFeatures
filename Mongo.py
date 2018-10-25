@@ -18,7 +18,7 @@ WildbookAPI = wildbook.WildbookAPI
 from pymongo import MongoClient as mongo
 
 DB_URL = 'mongodb://localhost:27017/'                               ## MongoDB
-SERVER_URL = 'http://pachy.cs.uic.edu:5001'                   ## IBEIS Server (pachy or other) 'http://pachy.cs.uic.edu:5001' 
+SERVER_URL = 'http://pachy.cs.uic.edu:5001'                       ## IBEIS Server (pachy or other) 'http://pachy.cs.uic.edu:5001'
 IMAGES_TO_ANALYZE = 2                                            ## How many images to analyze
 RANDOM_GIDS = False                                                 ## Should GIDs (images) be picked randomly?
 DB_NAME = 'tesiWildbook2018-GGR2'                                                ## Name of database in MongoDB.
@@ -89,7 +89,9 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
   # print(image_names_list)
   number_images_to_analyze = min(IMAGES_TO_ANALYZE, len(gid_list))
   # print("Will analyze", number_images_to_analyze, " images")
-  for gid in gid_list[:number_images_to_analyze]:
+  for t,gid in enumerate(gid_list[:number_images_to_analyze]):
+    if t%1000 == 0:
+        print("Downloading image", t, "of", number_images_to_analyze)
     if gid in image_names_list:
       #print(gid, ' appears to be here already')
       continue
