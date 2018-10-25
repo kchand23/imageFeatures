@@ -12,17 +12,16 @@ try:
     import beautyFtr as beauty
 except ImportError:
     from imageFeatures import beautyFtr as beauty
-from datetime import datetime as dt
 
 WildbookAPI = wildbook.WildbookAPI
 ''' Make sure you have PyMongo installed via pip. '''
 from pymongo import MongoClient as mongo
 
 DB_URL = 'mongodb://localhost:27017/'                               ## MongoDB
-SERVER_URL = 'http://pachy.cs.uic.edu:5001'                         ## IBEIS Server (pachy or other)
-IMAGES_TO_ANALYZE = 10                                             ## How many images to analyze
+SERVER_URL = 'http://pachy.cs.uic.edu:5001'm                   ## IBEIS Server (pachy or other) 'http://pachy.cs.uic.edu:5001' 
+IMAGES_TO_ANALYZE = 2                                            ## How many images to analyze
 RANDOM_GIDS = False                                                 ## Should GIDs (images) be picked randomly?
-DB_NAME = 'test-new'                                                ## Name of database in MongoDB.
+DB_NAME = 'tesiWildbook2018-GGR2'                                                ## Name of database in MongoDB.
 COLLECTION_NAME = 'images'                                          ## Name of collection in MongoDB.
 path_join = os.path.join                                            ## Shorthand function
 
@@ -92,12 +91,12 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
   # print("Will analyze", number_images_to_analyze, " images")
   for gid in gid_list[:number_images_to_analyze]:
     if gid in image_names_list:
-      print(gid, ' appears to be here already')
+      #print(gid, ' appears to be here already')
       continue
     else:
-      print('Downloading', gid, end='')
+      #print('Downloading', gid, end='')
       api.download_image_resize(gid, path_join(destination_dir, str(gid) + '.jpg'), 512)
-      print('... DONE')
+      #print('... DONE')
 
     # print(destination_dir + str(gid_list[i]) + '.jpg')
   return gid_list
@@ -126,7 +125,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   destination_dir = create_image_dir()                  # create directory to store images.
   gid_list = store_image_samples(destination_dir, api, custom_gids_list)  # store retrieved images in destination directory.
   image_list = os.listdir(destination_dir)              # list of all images on the directory.
-  print(image_list)
+  #print(image_list)
 
   ''' Define a database.   '''
   db = client[DB_NAME]
@@ -135,7 +134,6 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   images = db[COLLECTION_NAME]
 
   ''' Iteratively store image properties to MongoDB. '''
-  startime = dt.now()
   for image in image_list:
     gid = str(image).replace('.jpg','')
     aid_list = api.get_aid_of_gid(gid)[0]
@@ -155,9 +153,8 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
       'size': size
     }
     image_id = images.insert_one(Image).inserted_id
-    print(image_id)
-  endtime = dt.now()
-  print('TOOK', (endtime-startime).microseconds)
+    #print(image_id)
+
 
 
 if __name__ == '__main__':
