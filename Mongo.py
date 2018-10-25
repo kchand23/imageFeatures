@@ -116,7 +116,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   COLLECTION_NAME = collection_name
   IMAGES_TO_ANALYZE = imgs_to_analyze
   RANDOM_GIDS = rand_gids
-  
+
   if custom_gids_list is not None:
     IMAGES_TO_ANALYZE=len(custom_gids_list)
   client = connect_db(DB_URL)                           # connect mongodb.
