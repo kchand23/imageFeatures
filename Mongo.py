@@ -68,6 +68,7 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
   gid_list=gid_list_in
   if gid_list is None:
     gid_list = api.get_all_gids()
+
   # print(type(gid_list))
 
   # print(gid_list[:10])
@@ -79,29 +80,24 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
   # print(gid_list[:IMAGES_TO_ANALYZE])
 
   ''' Download the images from the Wildbook API. '''
-  imageList = os.listdir(destination_dir)
   image_names_list = []                                  # to see what images are already downloaded.
-  for name in imageList:
+  for name in os.listdir(destination_dir):
     if name == '.DS_Store':                              # ignore metafiles on MacOS.
       continue                                           # convert text to int and drop off the extension.
     file_name = int(name[:-4])
     image_names_list.append(file_name)                    # create a list of images that already exist.
   # print(image_names_list)
-  # print(imageList)
   number_images_to_analyze = min(IMAGES_TO_ANALYZE, len(gid_list))
   # print("Will analyze", number_images_to_analyze, " images")
-  for image in range(number_images_to_analyze + 1):
-    print(image)
-    try:
-        if gid_list[image] in image_names_list:
-          print(gid_list[image], 'I EXIST')                  # skip the images that exists already on disk.
-          continue
-    except IndexError:
-        print("List index ", image, " does not exist")
-        continue
-    print(gid_list[image], 'I AM BEING DOWNLOADED')
-    api.download_image_resize(gid_list[image], path_join(destination_dir, str(gid_list[image]) + '.jpg'), 4000)
-    print('I have downloaded: ' + str(gid_list[image]))
+  for gid in gid_list[:number_images_to_analyze]:
+    if gid in image_names_list:
+      print(gid, ' appears to be here already')
+      continue
+    else:
+      print('Downloading', gid, end='')
+      api.download_image_resize(gid, path_join(destination_dir, str(gid) + '.jpg'), 4000)
+      print('... DONE')
+
     # print(destination_dir + str(gid_list[i]) + '.jpg')
   return gid_list
 
@@ -120,7 +116,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   COLLECTION_NAME = collection_name
   IMAGES_TO_ANALYZE = imgs_to_analyze
   RANDOM_GIDS = rand_gids
-
+  
   if custom_gids_list is not None:
     IMAGES_TO_ANALYZE=len(custom_gids_list)
   client = connect_db(DB_URL)                           # connect mongodb.
