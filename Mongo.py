@@ -12,6 +12,7 @@ try:
     import beautyFtr as beauty
 except ImportError:
     from imageFeatures import beautyFtr as beauty
+from datetime import datetime as dt
 
 WildbookAPI = wildbook.WildbookAPI
 ''' Make sure you have PyMongo installed via pip. '''
@@ -19,7 +20,7 @@ from pymongo import MongoClient as mongo
 
 DB_URL = 'mongodb://localhost:27017/'                               ## MongoDB
 SERVER_URL = 'http://pachy.cs.uic.edu:5001'                         ## IBEIS Server (pachy or other)
-IMAGES_TO_ANALYZE = 100                                             ## How many images to analyze
+IMAGES_TO_ANALYZE = 10                                             ## How many images to analyze
 RANDOM_GIDS = False                                                 ## Should GIDs (images) be picked randomly?
 DB_NAME = 'test-new'                                                ## Name of database in MongoDB.
 COLLECTION_NAME = 'images'                                          ## Name of collection in MongoDB.
@@ -95,7 +96,7 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
       continue
     else:
       print('Downloading', gid, end='')
-      api.download_image_resize(gid, path_join(destination_dir, str(gid) + '.jpg'), 4000)
+      api.download_image_resize(gid, path_join(destination_dir, str(gid) + '.jpg'), 512)
       print('... DONE')
 
     # print(destination_dir + str(gid_list[i]) + '.jpg')
@@ -117,7 +118,9 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   IMAGES_TO_ANALYZE = imgs_to_analyze
   RANDOM_GIDS = rand_gids
 
+  custom_gids_list=['1','10','100']
   if custom_gids_list is not None:
+    custom_gids_list = list(map(int, custom_gids_list))
     IMAGES_TO_ANALYZE=len(custom_gids_list)
   client = connect_db(DB_URL)                           # connect mongodb.
   api = create_api(SERVER_URL)                          # get the api object for pachy.
@@ -133,6 +136,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   images = db[COLLECTION_NAME]
 
   ''' Iteratively store image properties to MongoDB. '''
+  startime = dt.now()
   for image in image_list:
     gid = str(image).replace('.jpg','')
     aid_list = api.get_aid_of_gid(gid)[0]
@@ -153,6 +157,8 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
     }
     image_id = images.insert_one(Image).inserted_id
     print(image_id)
+  endtime = dt.now()
+  print('TOOK', (endtime-startime).microseconds)
 
 
 if __name__ == '__main__':
