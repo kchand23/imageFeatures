@@ -107,6 +107,16 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
   print("\nDownload finished!")
   return gid_list
 
+def stringify_and_jpg(smth):
+    ret = ''
+    try:
+        ret = str(smth)
+        if ret.endswith('.jpg'):
+            return ret
+        else:
+            return ret+'.jpg'
+    except Exception as e:
+        print("Exception in stringify", e)
 
 def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, custom_gids_list=None):
 
@@ -133,11 +143,11 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   gid_list = store_image_samples(destination_dir, api, custom_gids_list)  # store retrieved images in destination directory.
   image_list = list(
                     set(
-                        map(lambda x: int(x[:-4]),os.listdir(destination_dir))
+                        os.listdir(destination_dir)
                         )
                         .intersection(
                         set(
-                            map(int,gid_list)
+                            map(stringify_and_jpg,gid_list)
                             )
                         )
                     )            # list of all images on the directory.
@@ -170,6 +180,8 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
     }
     images.update({'gid':gid}, image_entry, upsert=True) # Upddate if existing or insert
     #print(image_id)
+  print('Done inserting all images')
+
 
 
 
