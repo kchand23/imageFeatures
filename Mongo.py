@@ -123,7 +123,6 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   IMAGES_TO_ANALYZE = imgs_to_analyze
   RANDOM_GIDS = rand_gids
 
-  custom_gids = ['1','2']
   if custom_gids_list is not None:
     custom_gids_list = list(map(int, custom_gids_list))
     IMAGES_TO_ANALYZE=len(custom_gids_list)
