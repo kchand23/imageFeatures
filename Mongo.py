@@ -19,7 +19,7 @@ WildbookAPI = wildbook.WildbookAPI
 from pymongo import MongoClient as mongo
 
 DB_URL = 'mongodb://localhost:27017/'                               ## MongoDB
-SERVER_URL =  'http://pachy.cs.uic.edu:5001' ## GGR!!! NON GGR2                   ## IBEIS Server (pachy or other) 'http://pachy.cs.uic.edu:5001'
+SERVER_URL =  'http://71.59.132.88:5009'    ## GGR!!! NON GGR2                   ## IBEIS Server (pachy or other) 'http://pachy.cs.uic.edu:5001'
 IMAGES_TO_ANALYZE = 2                                            ## How many images to analyze
 RANDOM_GIDS = False                                                 ## Should GIDs (images) be picked randomly?
 DB_NAME = 'tesiWildbook2018-GGR2'                                                ## Name of database in MongoDB.
@@ -131,8 +131,18 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   api = create_api(SERVER_URL)                          # get the api object for pachy.
   destination_dir = create_image_dir()                  # create directory to store images.
   gid_list = store_image_samples(destination_dir, api, custom_gids_list)  # store retrieved images in destination directory.
-  image_list = list(set(os.listdir(destination_dir)).intersection(gid_list))            # list of all images on the directory.
-  #print(image_list)
+  image_list = list(
+                    set(
+                        map(lambda x: int(x[:-4]),os.listdir(destination_dir))
+                        )
+                        .intersection(
+                        set(
+                            map(int,gid_list)
+                            )
+                        )
+                    )            # list of all images on the directory.
+  print(image_list)
+
 
   ''' Define a database.   '''
   db = client[DB_NAME]
