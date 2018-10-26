@@ -141,7 +141,6 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                             )
                         )
                     )            # list of all images on the directory.
-  print(image_list)
 
 
   ''' Define a database.   '''
