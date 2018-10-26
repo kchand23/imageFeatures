@@ -2,6 +2,10 @@
   Author: Pratik Kshirsagar
   Date  : September 29 2018
 '''
+'''
+  Edited by Lorenzo Semeria (lor.semeria@gmail.com)
+  Fall 2018 
+'''
 try:
     import wildbook
 except ImportError:
