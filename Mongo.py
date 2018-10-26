@@ -12,13 +12,14 @@ try:
     import beautyFtr as beauty
 except ImportError:
     from imageFeatures import beautyFtr as beauty
+import pymongo
 
 WildbookAPI = wildbook.WildbookAPI
 ''' Make sure you have PyMongo installed via pip. '''
 from pymongo import MongoClient as mongo
 
 DB_URL = 'mongodb://localhost:27017/'                               ## MongoDB
-SERVER_URL =  'http://pachy.cs.uic.edu:5001'  ## GGR!!! NON GGR2                   ## IBEIS Server (pachy or other) 'http://pachy.cs.uic.edu:5001'
+SERVER_URL =  'http://71.59.132.88:5009'    ## GGR!!! NON GGR2                   ## IBEIS Server (pachy or other) 'http://pachy.cs.uic.edu:5001'
 IMAGES_TO_ANALYZE = 2                                            ## How many images to analyze
 RANDOM_GIDS = False                                                 ## Should GIDs (images) be picked randomly?
 DB_NAME = 'tesiWildbook2018-GGR2'                                                ## Name of database in MongoDB.
@@ -94,14 +95,16 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
         print("Downloading image", t, "of", number_images_to_analyze)
     if gid in image_names_list:
       #print(gid, ' appears to be here already')
+      print('.', end='')
       continue
     else:
       #print('Downloading', gid, end='')
       api.download_image_resize(gid, path_join(destination_dir, str(gid) + '.jpg'), 512)
+      print('|',end='')
       #print('... DONE')
 
     # print(destination_dir + str(gid_list[i]) + '.jpg')
-  print("Download finished!")
+  print("\nDownload finished!")
   return gid_list
 
 
@@ -120,19 +123,21 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   IMAGES_TO_ANALYZE = imgs_to_analyze
   RANDOM_GIDS = rand_gids
 
+  custom_gids = ['1','2']
   if custom_gids_list is not None:
     custom_gids_list = list(map(int, custom_gids_list))
     IMAGES_TO_ANALYZE=len(custom_gids_list)
   client = connect_db(DB_URL)                           # connect mongodb.
+
   api = create_api(SERVER_URL)                          # get the api object for pachy.
   destination_dir = create_image_dir()                  # create directory to store images.
   gid_list = store_image_samples(destination_dir, api, custom_gids_list)  # store retrieved images in destination directory.
-  image_list = os.listdir(destination_dir)              # list of all images on the directory.
+  image_list = list(set(os.listdir(destination_dir)).intersection(gid_list))            # list of all images on the directory.
   #print(image_list)
 
   ''' Define a database.   '''
   db = client[DB_NAME]
-
+  db[COLLECTION_NAME].create_index([('gid', pymongo.ASCENDING)], unique=True)
   ''' Define a collection. '''
   images = db[COLLECTION_NAME]
 
@@ -143,7 +148,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
     info = os.stat(path_join(destination_dir , image))
     size = info.st_size/(1024*1024.0)
     beauty_dict = beauty.extr_beauty_ftrs(path_join(destination_dir, image))
-    Image = {
+    image_entry = {
       'gid': gid,
       'date': datetime.datetime.utcnow(),
       'image': path_join(destination_dir, image),
@@ -155,7 +160,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
       'beauty_features': beauty_dict[image],
       'size': size
     }
-    image_id = images.insert_one(Image).inserted_id
+    images.update({'gid':gid}, image_entry, upsert=True) # Upddate if existing or insert
     #print(image_id)
 
 
