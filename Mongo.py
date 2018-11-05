@@ -172,7 +172,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
 
   ''' Iteratively store image properties to MongoDB. '''
   if redo_beauty:
-      image_list =list(map(lambda x: x.replace('.jpg', ''),  os.listdir(destination_dir)))
+      image_list =list(os.listdir(destination_dir))
 
   for i, image in enumerate(image_list):
 
