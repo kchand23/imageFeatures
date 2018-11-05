@@ -18,6 +18,7 @@ except ImportError:
     from imageFeatures import beautyFtr as beauty
 import pymongo
 import sys
+import time
 
 WildbookAPI = wildbook.WildbookAPI
 ''' Make sure you have PyMongo installed via pip. '''
