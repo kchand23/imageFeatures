@@ -173,64 +173,72 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   ''' Iteratively store image properties to MongoDB. '''
   if redo_beauty:
       image_list =list(os.listdir(destination_dir))
-
+  backoff = 1
   for i, image in enumerate(image_list):
-
-    if i%200 == 0:
-        print('Image', i, 'of', len(image_list))
-        time.sleep(2)
-    gid = str(image).replace('.jpg','')
-    aid_list = api.get_aid_of_gid(gid)[0]
-    info = os.stat(path_join(destination_dir , image))
-    size = info.st_size/(1024*1024.0)
-    beauty_dict = beauty.extr_beauty_ftrs(path_join(destination_dir, image))
-    bbox_dict = dict()
-    for aid in aid_list:
-        bbox_dict[aid] = api.get_bbox_of_aid(aid)
-    ## BBOX = [ a, b, c, d]
-
-    '''
-    a = start X
-    b = start Y
-    c = increase on X axis
-    d = increase on Y axis'''
-    total_surface_bbox = 0
-    biggest_box_area = 0
-    for aid in bbox_dict.keys():
-        box = bbox_dict[aid][0]
+    success = False
+    while not success:
         try:
-            a,b,c,d = box
-        except:
-            print(box)
-            return -1
-        total_surface_bbox = c*b
-        biggest_box_area, max_aid = max(c*b, biggest_box_area), aid if c*b>biggest_box_area else max_aid
+            if i%200 == 0:
+                print('Image', i, 'of', len(image_list))
+            gid = str(image).replace('.jpg','')
+            aid_list = api.get_aid_of_gid(gid)[0]
+            info = os.stat(path_join(destination_dir , image))
+            size = info.st_size/(1024*1024.0)
+            beauty_dict = beauty.extr_beauty_ftrs(path_join(destination_dir, image))
+            bbox_dict = dict()
+            for aid in aid_list:
+                bbox_dict[aid] = api.get_bbox_of_aid(aid)
+            ## BBOX = [ a, b, c, d]
 
-    for aid in bbox_dict.keys():
-        max_aid_species =  get_species_list([max_aid], api)
-        max_aid_species = list(max_aid_species.keys())[0]
-        img_dims =  api.get_image_size(gid)[0]
-        image_area = img_dims[0]*img_dims[1]
-        box_to_image_ratio = total_surface_bbox / image_area
-        bbox_dict = {str(k):val for (k,val) in map(lambda x: (x, bbox_dict[x]), bbox_dict.keys())}
-        image_entry = {
-          'gid': gid,
-          'date': datetime.datetime.utcnow(),
-          'image': path_join(destination_dir, image),
-          'aid_list': aid_list,
-          'animal_count': len(aid_list),
-          'nid_list': api.get_nid_of_aid(aid_list),
-          'species_list': get_species_list(aid_list, api),
-          'dimensions': img_dims,
-          'beauty_features': beauty_dict[image],
-          'size': size,
-          'bboxes': bbox_dict,
-          'total_bboxes': total_surface_bbox,
-          'bbox_area_ratio': box_to_image_ratio,
-          'biggest_animal_species': max_aid_species
-        }
-        images.update({'gid':gid}, image_entry, upsert=True) # Upddate if existing or insert
-        #print(image_id)
+            '''
+            a = start X
+            b = start Y
+            c = increase on X axis
+            d = increase on Y axis'''
+            total_surface_bbox = 0
+            biggest_box_area = 0
+            for aid in bbox_dict.keys():
+                box = bbox_dict[aid][0]
+                try:
+                    a,b,c,d = box
+                except:
+                    print(box)
+                    return -1
+                total_surface_bbox = c*b
+                biggest_box_area, max_aid = max(c*b, biggest_box_area), aid if c*b>biggest_box_area else max_aid
+
+            for aid in bbox_dict.keys():
+                max_aid_species =  get_species_list([max_aid], api)
+                max_aid_species = list(max_aid_species.keys())[0]
+                img_dims =  api.get_image_size(gid)[0]
+                image_area = img_dims[0]*img_dims[1]
+                box_to_image_ratio = total_surface_bbox / image_area
+                bbox_dict = {str(k):val for (k,val) in map(lambda x: (x, bbox_dict[x]), bbox_dict.keys())}
+                image_entry = {
+                  'gid': gid,
+                  'date': datetime.datetime.utcnow(),
+                  'image': path_join(destination_dir, image),
+                  'aid_list': aid_list,
+                  'animal_count': len(aid_list),
+                  'nid_list': api.get_nid_of_aid(aid_list),
+                  'species_list': get_species_list(aid_list, api),
+                  'dimensions': img_dims,
+                  'beauty_features': beauty_dict[image],
+                  'size': size,
+                  'bboxes': bbox_dict,
+                  'total_bboxes': total_surface_bbox,
+                  'bbox_area_ratio': box_to_image_ratio,
+                  'biggest_animal_species': max_aid_species
+                }
+                images.update({'gid':gid}, image_entry, upsert=True) # Upddate if existing or insert
+                #print(image_id)
+                success = True
+                backoff = max(1, backoff/2)
+        except Exception as e:
+            print('Exception', e)
+            success = False
+            time.sleep(backoff)
+            backoff = min(120, backoff*2)
   print('Done inserting all images')
 
 
