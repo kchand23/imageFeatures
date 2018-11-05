@@ -171,11 +171,13 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
 
   ''' Iteratively store image properties to MongoDB. '''
   if redo_beauty:
-      image_list = os.listdir(destination_dir)
+      image_list =list(map(lambda x: x.replace('.jpg', ''),  os.listdir(destination_dir))
 
   for i, image in enumerate(image_list):
-    if i%1000 == 0:
+
+    if i%200 == 0:
         print('Image', i, 'of', len(image_list))
+        time.sleep(2)
     gid = str(image).replace('.jpg','')
     aid_list = api.get_aid_of_gid(gid)[0]
     info = os.stat(path_join(destination_dir , image))
