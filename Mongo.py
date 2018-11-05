@@ -25,9 +25,9 @@ from pymongo import MongoClient as mongo
 
 DB_URL = 'mongodb://localhost:27017/'                               ## MongoDB
 SERVER_URL =  "http://71.59.132.88:5008"    #ggr2           ## IBEIS Server (pachy or other) 'http://pachy.cs.uic.edu:5001'
-IMAGES_TO_ANALYZE = 2                                            ## How many images to analyze
+IMAGES_TO_ANALYZE = 4                                          ## How many images to analyze
 RANDOM_GIDS = False                                                 ## Should GIDs (images) be picked randomly?
-DB_NAME = 'tesiWildbook2018-realGGR2'                                                ## Name of database in MongoDB.
+DB_NAME = 'disposable1'                                                ## Name of database in MongoDB.
 COLLECTION_NAME = 'images'                                          ## Name of collection in MongoDB.
 path_join = os.path.join                                            ## Shorthand function
 
@@ -92,7 +92,7 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
       continue                                           # convert text to int and drop off the extension.
     try:
       file_name = int(name[:-4])
-  except ValueError:
+    except ValueError:
       continue
     image_names_list.append(file_name)                    # create a list of images that already exist.
   # print(image_names_list)
@@ -127,7 +127,8 @@ def stringify_and_jpg(smth):
     except Exception as e:
         print("Exception in stringify", e)
 
-def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, custom_gids_list=None):
+
+def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, custom_gids_list=None, redo_beauty=False):
 
   global DB_URL
   global SERVER_URL
@@ -169,26 +170,61 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   images = db[COLLECTION_NAME]
 
   ''' Iteratively store image properties to MongoDB. '''
+  if redo_beauty:
+      image_list = os.listdir(destination_dir)
   for image in image_list:
     gid = str(image).replace('.jpg','')
     aid_list = api.get_aid_of_gid(gid)[0]
     info = os.stat(path_join(destination_dir , image))
     size = info.st_size/(1024*1024.0)
     beauty_dict = beauty.extr_beauty_ftrs(path_join(destination_dir, image))
-    image_entry = {
-      'gid': gid,
-      'date': datetime.datetime.utcnow(),
-      'image': path_join(destination_dir, image),
-      'aid_list': aid_list,
-      'animal_count': len(aid_list),
-      'nid_list': api.get_nid_of_aid(aid_list),
-      'species_list': get_species_list(aid_list, api),
-      'dimensions': api.get_image_size(gid)[0],
-      'beauty_features': beauty_dict[image],
-      'size': size
-    }
-    images.update({'gid':gid}, image_entry, upsert=True) # Upddate if existing or insert
-    #print(image_id)
+    bbox_dict = dict()
+    for aid in aid_list:
+        bbox_dict[aid] = api.get_bbox_of_aid(aid)
+    ## BBOX = [ a, b, c, d]
+
+    '''
+    a = start X
+    b = start Y
+    c = increase on X axis
+    d = increase on Y axis'''
+    total_surface_bbox = 0
+    biggest_box_area = 0
+    for aid in bbox_dict.keys():
+        box = bbox_dict[aid][0]
+        try:
+            a,b,c,d = box
+        except:
+            print(box)
+            return -1
+        total_surface_bbox = c*b
+        biggest_box_area, max_aid = max(c*b, biggest_box_area), aid if c*b>biggest_box_area else max_aid
+
+    for aid in bbox_dict.keys():
+        max_aid_species =  get_species_list([max_aid], api)
+        max_aid_species = list(max_aid_species.keys())[0]
+        img_dims =  api.get_image_size(gid)[0]
+        image_area = img_dims[0]*img_dims[1]
+        box_to_image_ratio = total_surface_bbox / image_area
+        bbox_dict = {str(k):val for (k,val) in map(lambda x: (x, bbox_dict[x]), bbox_dict.keys())}
+        image_entry = {
+          'gid': gid,
+          'date': datetime.datetime.utcnow(),
+          'image': path_join(destination_dir, image),
+          'aid_list': aid_list,
+          'animal_count': len(aid_list),
+          'nid_list': api.get_nid_of_aid(aid_list),
+          'species_list': get_species_list(aid_list, api),
+          'dimensions': img_dims,
+          'beauty_features': beauty_dict[image],
+          'size': size,
+          'bboxes': bbox_dict,
+          'total_bboxes': total_surface_bbox,
+          'bbox_area_ratio': box_to_image_ratio,
+          'biggest_animal_species': max_aid_species
+        }
+        images.update({'gid':gid}, image_entry, upsert=True) # Upddate if existing or insert
+        #print(image_id)
   print('Done inserting all images')
 
 
