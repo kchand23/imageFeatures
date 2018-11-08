@@ -179,7 +179,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
     while not success:
         try:
             if i%200 == 0:
-                print('Image', i, 'of', len(image_list))
+                print('Image', i, 'of', len(image_list), 'image is', image)
             gid = str(image).replace('.jpg','')
             aid_list = api.get_aid_of_gid(gid)[0]
             info = os.stat(path_join(destination_dir , image))
@@ -234,6 +234,8 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                 #print(image_id)
                 success = True
                 backoff = max(1, backoff/2)
+            if len(bbox_dict.keys()) == 0:
+                success = True
         except Exception as e:
             print('Exception', e)
             success = False
