@@ -214,6 +214,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                 image_area = img_dims[0]*img_dims[1]
                 box_to_image_ratio = total_surface_bbox / image_area
                 bbox_dict = {str(k):val for (k,val) in map(lambda x: (x, bbox_dict[x]), bbox_dict.keys())}
+                viewpoints_list = [api.get_viewpoint_of_aid(a) for a in aid_list]
                 image_entry = {
                   'gid': gid,
                   'date': datetime.datetime.utcnow(),
@@ -228,7 +229,8 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                   'bboxes': bbox_dict,
                   'total_bboxes': total_surface_bbox,
                   'bbox_area_ratio': box_to_image_ratio,
-                  'biggest_animal_species': max_aid_species
+                  'biggest_animal_species': max_aid_species,
+                  'viewpoints': viewpoints_list
                 }
                 images.update({'gid':gid}, image_entry, upsert=True) # Upddate if existing or insert
                 #print(image_id)
