@@ -166,7 +166,10 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
 
   ''' Define a database.   '''
   db = client[DB_NAME]
-  db[COLLECTION_NAME].create_index([('gid', pymongo.ASCENDING)], unique=True)
+  try:
+      db[COLLECTION_NAME].create_index([('gid', pymongo.ASCENDING)], unique=True)
+  except Exception:
+      pass
   ''' Define a collection. '''
   images = db[COLLECTION_NAME]
 
