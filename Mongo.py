@@ -221,6 +221,8 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
 
                 if only_boxes:
                     add_boxes_viewpoint(gid,bbox_dict, total_surface_bbox, box_to_image_ratio, max_aid_species, viewpoints_list, images)
+                    success = True
+                    backoff = max(1, backoff/2)
                 else:
 
                     img_dims =  api.get_image_size(gid)[0]
