@@ -129,7 +129,7 @@ def stringify_and_jpg(smth):
         print("Exception in stringify", e)
 
 
-def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, custom_gids_list=None, redo_beauty=False):
+def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, custom_gids_list=None, redo_beauty=False, only_boxes=False):
 
   global DB_URL
   global SERVER_URL
@@ -204,43 +204,51 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                 box = bbox_dict[aid][0]
                 try:
                     a,b,c,d = box
+                    total_surface_bbox = c*b
                 except:
                     print(box)
-                    return -1
-                total_surface_bbox = c*b
+                    total_surface_bbox = -1
+
                 biggest_box_area, max_aid = max(c*b, biggest_box_area), aid if c*b>biggest_box_area else max_aid
 
             for aid in bbox_dict.keys():
                 max_aid_species =  get_species_list([max_aid], api)
                 max_aid_species = list(max_aid_species.keys())[0]
-                img_dims =  api.get_image_size(gid)[0]
-                image_area = img_dims[0]*img_dims[1]
                 box_to_image_ratio = total_surface_bbox / image_area
-                bbox_dict = {str(k):val for (k,val) in map(lambda x: (x, bbox_dict[x]), bbox_dict.keys())}
                 viewpoints_list = [api.get_viewpoint_of_aid(a) for a in aid_list]
-                image_entry = {
-                  'gid': gid,
-                  'date': datetime.datetime.utcnow(),
-                  'image': path_join(destination_dir, image),
-                  'aid_list': aid_list,
-                  'animal_count': len(aid_list),
-                  'nid_list': api.get_nid_of_aid(aid_list),
-                  'species_list': get_species_list(aid_list, api),
-                  'dimensions': img_dims,
-                  'beauty_features': beauty_dict[image],
-                  'size': size,
-                  'bboxes': bbox_dict,
-                  'total_bboxes': total_surface_bbox,
-                  'bbox_area_ratio': box_to_image_ratio,
-                  'biggest_animal_species': max_aid_species,
-                  'viewpoints': viewpoints_list
-                }
-                images.update({'gid':gid}, image_entry, upsert=True) # Upddate if existing or insert
-                #print(image_id)
-                success = True
-                backoff = max(1, backoff/2)
-            if len(bbox_dict.keys()) == 0:
-                success = True
+                bbox_dict = {str(k):val for (k,val) in map(lambda x: (x, bbox_dict[x]), bbox_dict.keys())}
+                image_area = img_dims[0]*img_dims[1]
+
+                if only_boxes:
+                    add_boxes_viewpoint(gid,bbox_dict, total_surface_bbox, box_to_image_ratio, max_aid_species, viewpoints_list, images)
+                else:
+
+                    img_dims =  api.get_image_size(gid)[0]
+
+
+                    image_entry = {
+                      'gid': gid,
+                      'date': datetime.datetime.utcnow(),
+                      'image': path_join(destination_dir, image),
+                      'aid_list': aid_list,
+                      'animal_count': len(aid_list),
+                      'nid_list': api.get_nid_of_aid(aid_list),
+                      'species_list': get_species_list(aid_list, api),
+                      'dimensions': img_dims,
+                      'beauty_features': beauty_dict[image],
+                      'size': size,
+                      'bboxes': bbox_dict,
+                      'total_bboxes': total_surface_bbox,
+                      'bbox_area_ratio': box_to_image_ratio,
+                      'biggest_animal_species': max_aid_species,
+                      'viewpoints': viewpoints_list
+                    }
+                    images.update({'gid':gid}, {'$set': image_entry}, upsert=True) # Upddate if existing or insert
+                    #print(image_id)
+                    success = True
+                    backoff = max(1, backoff/2)
+                if len(bbox_dict.keys()) == 0:
+                    success = True
         except Exception as e:
             print('Exception', e)
             success = False
@@ -249,7 +257,16 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   print('Done inserting all images')
 
 
+def add_boxes_viewpoint(gid,bbox_dict, total_surface_bbox, box_to_image_ratio, max_aid_species, viewpoints_list, images):
+    image_entry = {
+    'bboxes': bbox_dict,
+    'total_bboxes': total_surface_bbox,
+    'bbox_area_ratio': box_to_image_ratio,
+    'biggest_animal_species': max_aid_species,
+    'viewpoints': viewpoints_list
+    }
 
+    images.update({'gid':gid}, {'$set': image_entry}, upsert=True) # Upddate if existing or insert
 
 if __name__ == '__main__':
   main()
