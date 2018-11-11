@@ -54,8 +54,9 @@ def create_image_dir(dir_name='images'):
   current_dir = os.getcwd()
 
   ''' Check if there exists an 'images' directory, else create it. '''
+
   if dir_name not in os.listdir(current_dir):
-    os.mkdir(path_join(current_dir + dir_name))
+    os.mkdir(path_join(current_dir, dir_name))
   destination_dir = path_join(current_dir, dir_name)                ## LS - updated to be OS independent
   return destination_dir
 
@@ -88,6 +89,7 @@ def store_image_samples(destination_dir, api, gid_list_in=None):
 
   ''' Download the images from the Wildbook API. '''
   image_names_list = []                                  # to see what images are already downloaded.
+
   for name in os.listdir(destination_dir):
     if name == '.DS_Store':                              # ignore metafiles on MacOS.
       continue                                           # convert text to int and drop off the extension.
