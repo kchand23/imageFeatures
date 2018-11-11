@@ -50,13 +50,13 @@ def create_api(url):
 ''' Create an empty directory to store images from PACHY.
     Return the destination directory path for the images.
 '''
-def create_image_dir():
+def create_image_dir(dir_name='images'):
   current_dir = os.getcwd()
 
   ''' Check if there exists an 'images' directory, else create it. '''
-  if 'images' not in os.listdir(current_dir):
-    os.mkdir(current_dir + '/images/')
-  destination_dir = path_join(current_dir, 'images')                ## LS - updated to be OS independent
+  if dir_name not in os.listdir(current_dir):
+    os.mkdir(path_join(current_dir + dir_name))
+  destination_dir = path_join(current_dir, dir_name)                ## LS - updated to be OS independent
   return destination_dir
 
 ''' Get list of species from a list of aids '''
@@ -129,7 +129,7 @@ def stringify_and_jpg(smth):
         print("Exception in stringify", e)
 
 
-def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, custom_gids_list=None, redo_beauty=False, only_boxes=False):
+def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=COLLECTION_NAME, imgs_to_analyze=IMAGES_TO_ANALYZE, rand_gids=RANDOM_GIDS, custom_gids_list=None, redo_beauty=False, only_boxes=False, img_dir_name='images'):
 
   global DB_URL
   global SERVER_URL
@@ -150,7 +150,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
   client = connect_db(DB_URL)                           # connect mongodb.
 
   api = create_api(SERVER_URL)                          # get the api object for pachy.
-  destination_dir = create_image_dir()                  # create directory to store images.
+  destination_dir = create_image_dir(img_dir_name)                  # create directory to store images.
   gid_list = store_image_samples(destination_dir, api, custom_gids_list)  # store retrieved images in destination directory.
   image_list = list(
                     set(
@@ -212,21 +212,20 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                 biggest_box_area, max_aid = max(c*b, biggest_box_area), aid if c*b>biggest_box_area else max_aid
 
             for aid in bbox_dict.keys():
+                img_dims =  api.get_image_size(gid)[0]
+                image_area = img_dims[0]*img_dims[1]
                 max_aid_species =  get_species_list([max_aid], api)
                 max_aid_species = list(max_aid_species.keys())[0]
                 box_to_image_ratio = total_surface_bbox / image_area
                 viewpoints_list = [api.get_viewpoint_of_aid(a) for a in aid_list]
                 bbox_dict = {str(k):val for (k,val) in map(lambda x: (x, bbox_dict[x]), bbox_dict.keys())}
-                image_area = img_dims[0]*img_dims[1]
+
 
                 if only_boxes:
                     add_boxes_viewpoint(gid,bbox_dict, total_surface_bbox, box_to_image_ratio, max_aid_species, viewpoints_list, images)
                     success = True
                     backoff = max(1, backoff/2)
                 else:
-
-                    img_dims =  api.get_image_size(gid)[0]
-
 
                     image_entry = {
                       'gid': gid,
@@ -249,8 +248,8 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                     #print(image_id)
                     success = True
                     backoff = max(1, backoff/2)
-                if len(bbox_dict.keys()) == 0:
-                    success = True
+            if len(bbox_dict.keys()) == 0:
+                success = True
         except Exception as e:
             print('Exception', e)
             success = False
@@ -267,7 +266,6 @@ def add_boxes_viewpoint(gid,bbox_dict, total_surface_bbox, box_to_image_ratio, m
     'biggest_animal_species': max_aid_species,
     'viewpoints': viewpoints_list
     }
-
     images.update({'gid':gid}, {'$set': image_entry}, upsert=True) # Upddate if existing or insert
 
 if __name__ == '__main__':
