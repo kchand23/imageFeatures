@@ -79,7 +79,7 @@ def extr_beauty_ftrs(imgFlNm):
     try:
          rgbImg = resize_img(io.imread(imgFlNm))
     except Exception as e:
-         print("Invalid image")
+         print("Invalid image!", e, 'image', imgFlNm)
          return e
     rgbImg = resize_img(io.imread(imgFlNm))
     if len(rgbImg.shape) != 3 or rgbImg.shape[2] != 3:
