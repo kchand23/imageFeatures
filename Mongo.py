@@ -223,39 +223,33 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                 bbox_dict = {str(k):val for (k,val) in map(lambda x: (x, bbox_dict[x]), bbox_dict.keys())}
 
 
-                if only_boxes:
-                    add_boxes_viewpoint(gid,bbox_dict, total_surface_bbox, box_to_image_ratio, max_aid_species, viewpoints_list, images)
-                    success = True
-                    backoff = max(1, backoff/2)
-                else:
-
-                    image_entry = {
-                      'gid': gid,
-                      'date': datetime.datetime.utcnow(),
-                      'image': path_join(destination_dir, image),
-                      'aid_list': aid_list,
-                      'animal_count': len(aid_list),
-                      'nid_list': api.get_nid_of_aid(aid_list),
-                      'species_list': get_species_list(aid_list, api),
-                      'dimensions': img_dims,
-                      'beauty_features': beauty_dict[image],
-                      'size': size,
-                      'bboxes': bbox_dict,
-                      'total_bboxes': total_surface_bbox,
-                      'bbox_area_ratio': box_to_image_ratio,
-                      'biggest_animal_species': max_aid_species,
-                      'viewpoints': viewpoints_list
-                    }
-                    images.update({'gid':gid}, {'$set': image_entry}, upsert=True) # Upddate if existing or insert
-                    #print(image_id)
-                    success = True
-                    backoff = max(1, backoff/2)
-            if len(bbox_dict.keys()) == 0:
-                try:
-                    images.update( {'gid':gid}, {'$set': {'no_aid_found':True } }, upsert=True)
-                except:
-                    print('image gid', gid, 'has no aid but is in DB')
+            if only_boxes:
+                add_boxes_viewpoint(gid,bbox_dict, total_surface_bbox, box_to_image_ratio, max_aid_species, viewpoints_list, images)
                 success = True
+                backoff = max(1, backoff/2)
+            else:
+
+                image_entry = {
+                  'gid': gid,
+                  'date': datetime.datetime.utcnow(),
+                  'image': path_join(destination_dir, image),
+                  'aid_list': aid_list,
+                  'animal_count': len(aid_list),
+                  'nid_list': api.get_nid_of_aid(aid_list),
+                  'species_list': get_species_list(aid_list, api),
+                  'dimensions': img_dims,
+                  'beauty_features': beauty_dict[image],
+                  'size': size,
+                  'bboxes': bbox_dict,
+                  'total_bboxes': total_surface_bbox,
+                  'bbox_area_ratio': box_to_image_ratio,
+                  'biggest_animal_species': max_aid_species,
+                  'viewpoints': viewpoints_list
+                }
+                images.update({'gid':gid}, {'$set': image_entry}, upsert=True) # Upddate if existing or insert
+                #print(image_id)
+                success = True
+                backoff = max(1, backoff/2)
         except Exception as e:
             print('Exception', e)
             success = False
