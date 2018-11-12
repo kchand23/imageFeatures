@@ -251,6 +251,10 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                     success = True
                     backoff = max(1, backoff/2)
             if len(bbox_dict.keys()) == 0:
+                try:
+                    images.update( {'gid':gid, {'$set': {'no_aid_found':True } } )
+                except:
+                    print('image gid', gid, 'has no aid but is in DB')
                 success = True
         except Exception as e:
             print('Exception', e)
