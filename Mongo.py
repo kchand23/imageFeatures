@@ -201,7 +201,8 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
             c = increase on X axis
             d = increase on Y axis'''
             total_surface_bbox = 0
-            biggest_box_area = 0
+            biggest_box_area = -1
+            max_aid = -1
             for aid in bbox_dict.keys():
                 box = bbox_dict[aid][0]
                 try:
@@ -219,7 +220,7 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
             box_to_image_ratio = -1
             viewpoints_list = list()
             bbox_dict = dict()
-            
+
             for aid in bbox_dict.keys():
                 image_area = img_dims[0]*img_dims[1]
                 max_aid_species =  get_species_list([max_aid], api)
