@@ -212,9 +212,15 @@ def main(db_url=DB_URL, server_url=SERVER_URL, db_name=DB_NAME, collection_name=
                     total_surface_bbox = -1
 
                 biggest_box_area, max_aid = max(c*b, biggest_box_area), aid if c*b>biggest_box_area else max_aid
+            img_dims =  api.get_image_size(gid)[0]
 
+
+            max_aid_species = -1
+            box_to_image_ratio = -1
+            viewpoints_list = list()
+            bbox_dict = dict()
+            
             for aid in bbox_dict.keys():
-                img_dims =  api.get_image_size(gid)[0]
                 image_area = img_dims[0]*img_dims[1]
                 max_aid_species =  get_species_list([max_aid], api)
                 max_aid_species = list(max_aid_species.keys())[0]
